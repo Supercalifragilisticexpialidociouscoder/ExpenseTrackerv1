@@ -5,432 +5,401 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Expense Tracker</title>
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
-  <script src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@babel/standalone/babel.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/recharts@2.10.3/umd/Recharts.min.js"></script>
-  <script src="/_sdk/element_sdk.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] },
-          colors: {
-            dark: { 900: '#0a0a0f', 800: '#12121a', 700: '#1a1a25', 600: '#222230' },
-            accent: { 400: '#a78bfa', 500: '#8b5cf6', 600: '#7c3aed', 700: '#6d28d9' }
-          }
-        }
-      }
-    }
-  </script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;family=Space+Mono:wght@400;700&amp;display=swap" rel="stylesheet">
   <style>
-    html, body, #root { height: 100%; margin: 0; }
-    @keyframes slideIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-    .anim-slide { animation: slideIn 0.35s ease-out forwards; }
-    .anim-fade { animation: fadeIn 0.3s ease-out forwards; }
-    .card-hover { transition: transform 0.2s, box-shadow 0.2s; }
-    .card-hover:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(139,92,246,0.12); }
-    input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: #12121a; }
-    ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+html, body { height: 100%; margin: 0; }
+* { font-family: 'DM Sans', sans-serif; }
+.mono { font-family: 'Space Mono', monospace; }
+@keyframes slideUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.anim-slide { animation: slideUp 0.4s ease both; }
+.anim-fade { animation: fadeIn 0.5s ease both; }
+.toast-in { animation: slideUp 0.3s ease both; }
+.toast-out { animation: fadeIn 0.3s ease reverse both; }
+body { box-sizing: border-box; }
   </style>
-  <style>body { box-sizing: border-box; }</style>
-  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js" type="text/javascript"></script>
   <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+  <script src="/_sdk/element_sdk.js" type="text/javascript"></script>
  </head>
- <body class="h-full bg-dark-900 font-sans text-gray-100">
-  <div id="root" class="h-full"></div>
-  <script type="text/babel">
-    const { useState, useEffect, useCallback, useRef } = React;
-    const { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } = Recharts;
+ <body class="h-full">
+  <div id="app" class="h-full w-full overflow-auto" style="background:#0f1117;">
+   <!-- Toast Container -->
+   <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2"></div><!-- Header -->
+   <header class="w-full px-4 pt-6 pb-4 text-center anim-fade">
+    <h1 id="app-title" class="text-2xl md:text-3xl font-bold" style="color:#a78bfa;">Expense Tracker</h1>
+    <p id="app-subtitle" class="text-sm mt-1" style="color:#6b7280;">Track your money smartly</p>
+   </header>
+   <div class="max-w-5xl mx-auto px-4 pb-8">
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+     <div class="rounded-xl p-4 anim-slide" style="background:#1a1d27; animation-delay:0.05s;">
+      <div class="flex items-center gap-2 mb-1">
+       <i data-lucide="wallet" style="width:18px;height:18px;color:#a78bfa;"></i> <span class="text-xs font-medium uppercase tracking-wider" style="color:#6b7280;">Balance</span>
+      </div>
+      <p id="balance" class="mono text-xl font-bold" style="color:#e2e8f0;">₹2,450</p>
+     </div>
+     <div class="rounded-xl p-4 anim-slide" style="background:#1a1d27; animation-delay:0.1s;">
+      <div class="flex items-center gap-2 mb-1">
+       <i data-lucide="trending-up" style="width:18px;height:18px;color:#34d399;"></i> <span class="text-xs font-medium uppercase tracking-wider" style="color:#6b7280;">Income</span>
+      </div>
+      <p id="total-income" class="mono text-xl font-bold" style="color:#34d399;">₹4,000</p>
+     </div>
+     <div class="rounded-xl p-4 anim-slide" style="background:#1a1d27; animation-delay:0.15s;">
+      <div class="flex items-center gap-2 mb-1">
+       <i data-lucide="trending-down" style="width:18px;height:18px;color:#f87171;"></i> <span class="text-xs font-medium uppercase tracking-wider" style="color:#6b7280;">Expenses</span>
+      </div>
+      <p id="total-expenses" class="mono text-xl font-bold" style="color:#f87171;">₹1,550</p>
+     </div>
+    </div>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+     <!-- Add Transaction Form -->
+     <div class="rounded-xl p-5 anim-slide" style="background:#1a1d27; animation-delay:0.2s;">
+      <h2 class="text-base font-semibold mb-4" style="color:#e2e8f0;">Add Transaction</h2>
+      <form id="txn-form" class="space-y-3">
+       <div>
+        <label for="txn-title" class="block text-xs font-medium mb-1" style="color:#9ca3af;">Title</label> <input id="txn-title" type="text" placeholder="e.g. Groceries" required class="w-full rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-purple-500/50" style="background:#262937; color:#e2e8f0; border:1px solid #333650;">
+       </div>
+       <div class="grid grid-cols-2 gap-3">
+        <div>
+         <label for="txn-amount" class="block text-xs font-medium mb-1" style="color:#9ca3af;">Amount (₹)</label> <input id="txn-amount" type="number" min="1" placeholder="500" required class="w-full rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-purple-500/50" style="background:#262937; color:#e2e8f0; border:1px solid #333650;">
+        </div>
+        <div>
+         <label for="txn-category" class="block text-xs font-medium mb-1" style="color:#9ca3af;">Category</label> <select id="txn-category" required class="w-full rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-purple-500/50" style="background:#262937; color:#e2e8f0; border:1px solid #333650;"> <option value="Salary">Salary</option> <option value="Food">Food</option> <option value="Shopping">Shopping</option> <option value="Transport">Transport</option> <option value="Bills">Bills</option> <option value="Entertainment">Entertainment</option> <option value="Health">Health</option> <option value="Other">Other</option> </select>
+        </div>
+       </div>
+       <div>
+        <label class="block text-xs font-medium mb-2" style="color:#9ca3af;">Type</label>
+        <div class="flex gap-2">
+         <button type="button" id="btn-income" onclick="setType('income')" class="flex-1 py-2 rounded-lg text-sm font-medium transition-all" style="background:#166534; color:#34d399; border:1px solid #22c55e44;">Income</button> <button type="button" id="btn-expense" onclick="setType('expense')" class="flex-1 py-2 rounded-lg text-sm font-medium transition-all" style="background:#262937; color:#9ca3af; border:1px solid #333650;">Expense</button>
+        </div>
+       </div><button type="submit" class="w-full py-2.5 rounded-lg text-sm font-semibold transition-all hover:brightness-110" style="background:#7c3aed; color:#fff;"> Add Transaction </button>
+      </form>
+     </div><!-- Transaction List -->
+     <div class="rounded-xl p-5 anim-slide" style="background:#1a1d27; animation-delay:0.25s;">
+      <h2 class="text-base font-semibold mb-4" style="color:#e2e8f0;">Transactions</h2>
+      <div id="txn-list" class="space-y-2 max-h-72 overflow-y-auto pr-1" style="scrollbar-width:thin; scrollbar-color:#333650 transparent;"></div>
+      <p id="txn-empty" class="text-center text-sm py-6 hidden" style="color:#6b7280;">No transactions yet</p>
+     </div>
+    </div>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+     <!-- Pie Chart -->
+     <div class="lg:col-span-2 rounded-xl p-5 anim-slide" style="background:#1a1d27; animation-delay:0.3s;">
+      <h2 class="text-base font-semibold mb-4" style="color:#e2e8f0;">Expenses by Category</h2>
+      <div class="flex flex-col sm:flex-row items-center gap-6">
+       <svg id="pie-chart" viewbox="0 0 200 200" width="180" height="180"></svg>
+       <div id="pie-legend" class="flex flex-col gap-2"></div>
+      </div>
+      <p id="pie-empty" class="text-center text-sm py-6 hidden" style="color:#6b7280;">Add expenses to see chart</p>
+     </div><!-- Sidebar Extras -->
+     <div class="space-y-4">
+      <!-- Top Expense -->
+      <div class="rounded-xl p-4 anim-slide" style="background:#1a1d27; animation-delay:0.35s;">
+       <div class="flex items-center gap-2 mb-2">
+        <i data-lucide="flame" style="width:16px;height:16px;color:#fb923c;"></i>
+        <h3 class="text-sm font-semibold" style="color:#e2e8f0;">Top Expense</h3>
+       </div>
+       <p id="top-expense" class="mono text-sm" style="color:#fb923c;">—</p>
+      </div><!-- Spending Personality -->
+      <div class="rounded-xl p-4 anim-slide" style="background:#1a1d27; animation-delay:0.4s;">
+       <div class="flex items-center gap-2 mb-2">
+        <i data-lucide="sparkles" style="width:16px;height:16px;color:#facc15;"></i>
+        <h3 class="text-sm font-semibold" style="color:#e2e8f0;">Spending Personality</h3>
+       </div>
+       <p id="personality" class="text-sm font-medium" style="color:#facc15;">—</p>
+       <p id="personality-desc" class="text-xs mt-1" style="color:#6b7280;"></p>
+      </div><!-- Goal Tracker -->
+      <div class="rounded-xl p-4 anim-slide" style="background:#1a1d27; animation-delay:0.45s;">
+       <div class="flex items-center gap-2 mb-2">
+        <i data-lucide="target" style="width:16px;height:16px;color:#a78bfa;"></i>
+        <h3 id="goal-title" class="text-sm font-semibold" style="color:#e2e8f0;">Emergency Fund</h3>
+       </div>
+       <div class="flex items-center justify-between text-xs mb-1">
+        <span id="goal-saved" class="mono" style="color:#a78bfa;">₹0</span> <span id="goal-target" class="mono" style="color:#6b7280;">₹1,000</span>
+       </div>
+       <div class="w-full rounded-full h-2.5 overflow-hidden" style="background:#262937;">
+        <div id="goal-bar" class="h-full rounded-full transition-all duration-500" style="background:linear-gradient(90deg,#7c3aed,#a78bfa); width:0%;"></div>
+       </div>
+       <div class="mt-3 flex gap-2">
+        <input id="goal-input" type="number" min="1" placeholder="Add ₹" class="flex-1 rounded-lg px-2 py-1.5 text-xs outline-none" style="background:#262937; color:#e2e8f0; border:1px solid #333650;"> <button onclick="addToGoal()" class="px-3 py-1.5 rounded-lg text-xs font-medium hover:brightness-110 transition-all" style="background:#7c3aed; color:#fff;">Save</button>
+       </div>
+      </div>
+     </div>
+    </div>
+   </div>
+  </div>
+  <script>
+// ── State ──
+const STORAGE_KEY = 'expense_tracker_data';
+const GOAL_KEY = 'expense_tracker_goal';
+const CAT_COLORS = {
+  Salary:'#34d399', Food:'#f87171', Shopping:'#a78bfa', Transport:'#38bdf8',
+  Bills:'#fb923c', Entertainment:'#facc15', Health:'#f472b6', Other:'#6b7280'
+};
 
-    // ─── Category definitions with emoji & color ───
-    const CATEGORIES = {
-      food:          { emoji: '🍔', label: 'Food',          color: '#f97316' },
-      transport:     { emoji: '🚗', label: 'Transport',     color: '#3b82f6' },
-      entertainment: { emoji: '🎮', label: 'Entertainment', color: '#ec4899' },
-      shopping:      { emoji: '🛍️', label: 'Shopping',      color: '#14b8a6' },
-      bills:         { emoji: '📄', label: 'Bills',         color: '#eab308' },
-      health:        { emoji: '💊', label: 'Health',        color: '#22c55e' },
-      other:         { emoji: '📦', label: 'Other',         color: '#94a3b8' },
-    };
+let transactions = [];
+let txnType = 'income';
+let goalSaved = 0;
+const goalTarget = 1000;
 
-    // ─── LocalStorage helpers ───
-    const loadData = (key, fallback) => {
-      try { const d = localStorage.getItem(key); return d ? JSON.parse(d) : fallback; }
-      catch { return fallback; }
-    };
-    const saveData = (key, val) => localStorage.setItem(key, JSON.stringify(val));
+// ── LocalStorage ──
+function loadData() {
+  try {
+    const d = localStorage.getItem(STORAGE_KEY);
+    transactions = d ? JSON.parse(d) : getSampleData();
+    const g = localStorage.getItem(GOAL_KEY);
+    goalSaved = g ? parseFloat(g) : 600;
+  } catch { 
+    transactions = getSampleData(); 
+    goalSaved = 600; 
+  }
+}
 
-    // ─── Spending Personality calculator ───
-    function getPersonality(income, expense) {
-      if (income === 0) return { title: 'Getting Started', emoji: '🌱', desc: 'Add some income to begin!' };
-      const ratio = expense / income;
-      if (ratio < 0.3) return { title: 'Super Saver', emoji: '🏆', desc: 'Incredible discipline!' };
-      if (ratio < 0.5) return { title: 'Smart Spender', emoji: '🧠', desc: 'Great balance of saving and spending.' };
-      if (ratio < 0.75) return { title: 'Balanced', emoji: '⚖️', desc: 'You\'re right in the middle.' };
-      if (ratio < 1) return { title: 'Big Spender', emoji: '💸', desc: 'Watch out, spending is high.' };
-      return { title: 'Over Budget', emoji: '🚨', desc: 'Expenses exceed income!' };
-    }
+function saveData() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(transactions));
+  localStorage.setItem(GOAL_KEY, String(goalSaved));
+}
 
-    // ─── Main App ───
-    function App() {
-      // Config from Element SDK
-      const [cfg, setCfg] = useState({ app_title: 'Expense Tracker', currency_symbol: '$', font_family: 'Plus Jakarta Sans', font_size: 16, bg_color: '#0a0a0f', card_color: '#12121a', text_color: '#f3f4f6', accent_color: '#8b5cf6', secondary_color: '#1a1a25' });
+function getSampleData() {
+  return [
+    { id: 1, title:'Salary', amount:3000, category:'Salary', type:'income' },
+    { id: 2, title:'Freelance', amount:1000, category:'Other', type:'income' },
+    { id: 3, title:'Groceries', amount:200, category:'Food', type:'expense' },
+    { id: 4, title:'New Shoes', amount:150, category:'Shopping', type:'expense' },
+    { id: 5, title:'Bus Pass', amount:50, category:'Transport', type:'expense' },
+    { id: 6, title:'Electricity', amount:350, category:'Bills', type:'expense' },
+    { id: 7, title:'Movie Night', amount:300, category:'Entertainment', type:'expense' },
+    { id: 8, title:'Medicine', amount:500, category:'Health', type:'expense' },
+  ];
+}
 
-      // Transaction state
-      const [transactions, setTransactions] = useState(() => loadData('exp_txns', []));
-      const [title, setTitle] = useState('');
-      const [amount, setAmount] = useState('');
-      const [category, setCategory] = useState('food');
-      const [txnType, setTxnType] = useState('expense');
+// ── Rendering ──
+function render() {
+  const income = transactions.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0);
+  const expenses = transactions.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
+  const balance = income - expenses;
 
-      // Goal state
-      const [goalAmount, setGoalAmount] = useState(() => loadData('exp_goal', 0));
-      const [goalInput, setGoalInput] = useState('');
+  document.getElementById('balance').textContent = `₹${balance.toLocaleString('en-IN')}`;
+  document.getElementById('balance').style.color = balance >= 0 ? '#e2e8f0' : '#f87171';
+  document.getElementById('total-income').textContent = `₹${income.toLocaleString('en-IN')}`;
+  document.getElementById('total-expenses').textContent = `₹${expenses.toLocaleString('en-IN')}`;
 
-      // Toast
-      const [toast, setToast] = useState(null);
-      const toastTimer = useRef(null);
+  // Transaction List
+  const list = document.getElementById('txn-list');
+  const empty = document.getElementById('txn-empty');
+  if (transactions.length === 0) {
+    list.classList.add('hidden'); 
+    empty.classList.remove('hidden');
+  } else {
+    list.classList.remove('hidden'); 
+    empty.classList.add('hidden');
+    const sorted = [...transactions].reverse();
+    const existingMap = new Map([...list.children].map(el => [el.dataset.id, el]));
+    const newIds = new Set(sorted.map(t => String(t.id)));
 
-      // Delete confirmation
-      const [confirmDelete, setConfirmDelete] = useState(null);
+    existingMap.forEach((el, id) => { 
+      if (!newIds.has(id)) el.remove(); 
+    });
 
-      // Persist
-      useEffect(() => saveData('exp_txns', transactions), [transactions]);
-      useEffect(() => saveData('exp_goal', goalAmount), [goalAmount]);
-
-      // Element SDK init
-      useEffect(() => {
-        if (!window.elementSdk) return;
-        const defaultConfig = { app_title: 'Expense Tracker', currency_symbol: '$', font_family: 'Plus Jakarta Sans', font_size: 16, bg_color: '#0a0a0f', card_color: '#12121a', text_color: '#f3f4f6', accent_color: '#8b5cf6', secondary_color: '#1a1a25' };
-        window.elementSdk.init({
-          defaultConfig,
-          onConfigChange: async (c) => setCfg(prev => ({ ...prev, ...c })),
-          mapToCapabilities: (c) => ({
-            recolorables: [
-              { get: () => c.bg_color || defaultConfig.bg_color, set: v => { c.bg_color = v; window.elementSdk.setConfig({ bg_color: v }); } },
-              { get: () => c.card_color || defaultConfig.card_color, set: v => { c.card_color = v; window.elementSdk.setConfig({ card_color: v }); } },
-              { get: () => c.text_color || defaultConfig.text_color, set: v => { c.text_color = v; window.elementSdk.setConfig({ text_color: v }); } },
-              { get: () => c.accent_color || defaultConfig.accent_color, set: v => { c.accent_color = v; window.elementSdk.setConfig({ accent_color: v }); } },
-              { get: () => c.secondary_color || defaultConfig.secondary_color, set: v => { c.secondary_color = v; window.elementSdk.setConfig({ secondary_color: v }); } },
-            ],
-            borderables: [],
-            fontEditable: { get: () => c.font_family || defaultConfig.font_family, set: v => { c.font_family = v; window.elementSdk.setConfig({ font_family: v }); } },
-            fontSizeable: { get: () => c.font_size || defaultConfig.font_size, set: v => { c.font_size = v; window.elementSdk.setConfig({ font_size: v }); } },
-          }),
-          mapToEditPanelValues: (c) => new Map([
-            ['app_title', c.app_title || defaultConfig.app_title],
-            ['currency_symbol', c.currency_symbol || defaultConfig.currency_symbol],
-          ]),
-        });
-      }, []);
-
-      const showToast = (msg) => {
-        clearTimeout(toastTimer.current);
-        setToast(msg);
-        toastTimer.current = setTimeout(() => setToast(null), 2500);
-      };
-
-      // Computed values
-      const income = transactions.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
-      const expenses = transactions.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
-      const balance = income - expenses;
-      const cur = cfg.currency_symbol;
-      const baseFont = cfg.font_size || 16;
-      const fontStack = `${cfg.font_family || 'Plus Jakarta Sans'}, sans-serif`;
-
-      // Expense by category for pie chart
-      const expByCategory = {};
-      transactions.filter(t => t.type === 'expense').forEach(t => {
-        expByCategory[t.category] = (expByCategory[t.category] || 0) + t.amount;
-      });
-      const pieData = Object.entries(expByCategory).map(([key, value]) => ({
-        name: CATEGORIES[key]?.label || key,
-        value,
-        color: CATEGORIES[key]?.color || '#94a3b8',
-      }));
-
-      // Top expense
-      const topExpense = transactions.filter(t => t.type === 'expense').sort((a, b) => b.amount - a.amount)[0];
-
-      // Daily spending limit (remaining balance / 30)
-      const dailyLimit = balance > 0 ? (balance / 30).toFixed(2) : 0;
-
-      // Personality
-      const personality = getPersonality(income, expenses);
-
-      // Goal progress
-      const goalSaved = balance > 0 ? balance : 0;
-      const goalProgress = goalAmount > 0 ? Math.min((goalSaved / goalAmount) * 100, 100) : 0;
-
-      // Add transaction
-      const addTransaction = (e) => {
-        e.preventDefault();
-        if (!title.trim() || !amount || parseFloat(amount) <= 0) { showToast('⚠️ Please fill all fields'); return; }
-        const txn = { id: Date.now().toString(), title: title.trim(), amount: parseFloat(amount), category, type: txnType, date: new Date().toISOString() };
-        setTransactions(prev => [txn, ...prev]);
-        setTitle(''); setAmount(''); setCategory('food'); setTxnType('expense');
-        showToast(txnType === 'income' ? '💰 Income added!' : '📝 Expense added!');
-      };
-
-      const deleteTxn = (id) => {
-        setTransactions(prev => prev.filter(t => t.id !== id));
-        setConfirmDelete(null);
-        showToast('🗑️ Transaction deleted');
-      };
-
-      const setGoal = (e) => {
-        e.preventDefault();
-        const val = parseFloat(goalInput);
-        if (!val || val <= 0) return;
-        setGoalAmount(val);
-        setGoalInput('');
-        showToast('🎯 Goal set!');
-      };
-
-      const cardStyle = { backgroundColor: cfg.card_color, borderColor: cfg.secondary_color };
-      const inputStyle = { backgroundColor: cfg.secondary_color, borderColor: cfg.secondary_color, color: cfg.text_color, fontFamily: fontStack, fontSize: `${baseFont * 0.875}px` };
-
-      return (
-        <div className="h-full overflow-auto" style={{ backgroundColor: cfg.bg_color, color: cfg.text_color, fontFamily: fontStack, fontSize: `${baseFont}px` }}>
-          {/* Toast */}
-          {toast && (
-            <div className="fixed top-4 right-4 z-50 anim-fade rounded-xl px-5 py-3 shadow-2xl border" style={{ backgroundColor: cfg.accent_color, borderColor: cfg.accent_color, color: '#fff', fontSize: `${baseFont * 0.875}px` }}>
-              {toast}
-            </div>
-          )}
-
-          <div className="max-w-6xl mx-auto p-4 md:p-8">
-            {/* Header */}
-            <header className="mb-8 anim-slide">
-              <h1 className="font-extrabold tracking-tight" style={{ fontSize: `${baseFont * 2}px`, color: cfg.accent_color }}>{cfg.app_title}</h1>
-              <p style={{ color: cfg.text_color + '99', fontSize: `${baseFont * 0.875}px` }}>Track your finances with style</p>
-            </header>
-
-            {/* Summary Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-              {[
-                { label: 'Balance', value: balance, icon: '💎' },
-                { label: 'Income', value: income, icon: '📈' },
-                { label: 'Expenses', value: expenses, icon: '📉' },
-              ].map((item, i) => (
-                <div key={item.label} className="rounded-2xl border p-5 card-hover anim-slide" style={{ ...cardStyle, animationDelay: `${i * 0.08}s` }}>
-                  <div className="flex items-center justify-between mb-2">
-                    <span style={{ fontSize: `${baseFont * 0.8}px`, color: cfg.text_color + 'aa' }}>{item.label}</span>
-                    <span style={{ fontSize: `${baseFont * 1.4}px` }}>{item.icon}</span>
-                  </div>
-                  <p className="font-bold" style={{ fontSize: `${baseFont * 1.6}px`, color: item.label === 'Expenses' ? '#f87171' : item.label === 'Income' ? '#4ade80' : cfg.accent_color }}>
-                    {cur}{item.value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </p>
-                </div>
-              ))}
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Left Column: Form + Insights */}
-              <div className="lg:col-span-1 space-y-5">
-                {/* Add Transaction Form */}
-                <div className="rounded-2xl border p-5 anim-slide" style={cardStyle}>
-                  <h2 className="font-bold mb-4" style={{ fontSize: `${baseFont * 1.15}px` }}>Add Transaction</h2>
-                  <form onSubmit={addTransaction} className="space-y-3">
-                    {/* Type toggle */}
-                    <div className="flex rounded-xl overflow-hidden border" style={{ borderColor: cfg.secondary_color }}>
-                      {['expense', 'income'].map(t => (
-                        <button key={t} type="button" onClick={() => setTxnType(t)}
-                          className="flex-1 py-2.5 font-semibold transition-all"
-                          style={{
-                            backgroundColor: txnType === t ? cfg.accent_color : cfg.secondary_color,
-                            color: txnType === t ? '#fff' : cfg.text_color + '99',
-                            fontSize: `${baseFont * 0.85}px`
-                          }}>
-                          {t === 'income' ? '📈 Income' : '📉 Expense'}
-                        </button>
-                      ))}
-                    </div>
-                    <input type="text" placeholder="Title" value={title} onChange={e => setTitle(e.target.value)}
-                      className="w-full rounded-xl border px-4 py-3 outline-none focus:ring-2 transition-all"
-                      style={{ ...inputStyle, '--tw-ring-color': cfg.accent_color }} />
-                    <input type="number" placeholder="Amount" value={amount} onChange={e => setAmount(e.target.value)} min="0" step="0.01"
-                      className="w-full rounded-xl border px-4 py-3 outline-none focus:ring-2 transition-all"
-                      style={inputStyle} />
-                    {txnType === 'expense' && (
-                      <div className="grid grid-cols-4 gap-2">
-                        {Object.entries(CATEGORIES).map(([key, cat]) => (
-                          <button key={key} type="button" onClick={() => setCategory(key)}
-                            className="rounded-xl py-2 text-center transition-all border"
-                            style={{
-                              backgroundColor: category === key ? cat.color + '33' : cfg.secondary_color,
-                              borderColor: category === key ? cat.color : 'transparent',
-                              fontSize: `${baseFont * 0.7}px`
-                            }}>
-                            <div style={{ fontSize: `${baseFont * 1.1}px` }}>{cat.emoji}</div>
-                            <div className="mt-0.5" style={{ color: cfg.text_color + 'cc' }}>{cat.label}</div>
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                    <button type="submit" className="w-full rounded-xl py-3 font-bold transition-all hover:opacity-90"
-                      style={{ backgroundColor: cfg.accent_color, color: '#fff', fontSize: `${baseFont * 0.95}px` }}>
-                      Add {txnType === 'income' ? 'Income' : 'Expense'}
-                    </button>
-                  </form>
-                </div>
-
-                {/* Personality Card */}
-                <div className="rounded-2xl border p-5 card-hover anim-slide" style={cardStyle}>
-                  <h2 className="font-bold mb-3" style={{ fontSize: `${baseFont * 1.1}px` }}>Spending Personality</h2>
-                  <div className="text-center py-3">
-                    <span style={{ fontSize: `${baseFont * 2.5}px` }}>{personality.emoji}</span>
-                    <p className="font-bold mt-2" style={{ fontSize: `${baseFont * 1.3}px`, color: cfg.accent_color }}>{personality.title}</p>
-                    <p style={{ color: cfg.text_color + '99', fontSize: `${baseFont * 0.8}px` }}>{personality.desc}</p>
-                  </div>
-                </div>
-
-                {/* Goal Tracker */}
-                <div className="rounded-2xl border p-5 card-hover anim-slide" style={cardStyle}>
-                  <h2 className="font-bold mb-3" style={{ fontSize: `${baseFont * 1.1}px` }}>🎯 Savings Goal</h2>
-                  {goalAmount > 0 ? (
-                    <div>
-                      <div className="flex justify-between mb-2" style={{ fontSize: `${baseFont * 0.8}px`, color: cfg.text_color + 'aa' }}>
-                        <span>{cur}{goalSaved.toFixed(2)} saved</span>
-                        <span>{cur}{goalAmount.toFixed(2)} goal</span>
-                      </div>
-                      <div className="w-full rounded-full h-4 overflow-hidden" style={{ backgroundColor: cfg.secondary_color }}>
-                        <div className="h-full rounded-full transition-all duration-700" style={{ width: `${goalProgress}%`, background: `linear-gradient(90deg, ${cfg.accent_color}, #c084fc)` }} />
-                      </div>
-                      <p className="text-center mt-2 font-bold" style={{ color: cfg.accent_color, fontSize: `${baseFont * 1.1}px` }}>{goalProgress.toFixed(0)}%</p>
-                      <button onClick={() => setGoalAmount(0)} className="w-full mt-2 rounded-lg py-1.5 border transition-all hover:opacity-80"
-                        style={{ borderColor: cfg.secondary_color, color: cfg.text_color + '99', fontSize: `${baseFont * 0.75}px` }}>Reset Goal</button>
-                    </div>
-                  ) : (
-                    <form onSubmit={setGoal} className="flex gap-2">
-                      <input type="number" placeholder="Target amount" value={goalInput} onChange={e => setGoalInput(e.target.value)}
-                        className="flex-1 rounded-xl border px-3 py-2.5 outline-none" style={inputStyle} />
-                      <button type="submit" className="rounded-xl px-4 py-2.5 font-semibold" style={{ backgroundColor: cfg.accent_color, color: '#fff', fontSize: `${baseFont * 0.85}px` }}>Set</button>
-                    </form>
-                  )}
-                </div>
-
-                {/* Quick Stats */}
-                <div className="rounded-2xl border p-5 card-hover anim-slide" style={cardStyle}>
-                  <h2 className="font-bold mb-3" style={{ fontSize: `${baseFont * 1.1}px` }}>Quick Stats</h2>
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span style={{ color: cfg.text_color + 'aa', fontSize: `${baseFont * 0.85}px` }}>📊 Daily Limit</span>
-                      <span className="font-bold" style={{ color: '#4ade80', fontSize: `${baseFont * 0.95}px` }}>{cur}{dailyLimit}/day</span>
-                    </div>
-                    {topExpense && (
-                      <div className="flex justify-between items-center">
-                        <span style={{ color: cfg.text_color + 'aa', fontSize: `${baseFont * 0.85}px` }}>🔥 Top Expense</span>
-                        <span className="font-bold" style={{ color: '#f87171', fontSize: `${baseFont * 0.95}px` }}>{topExpense.title} ({cur}{topExpense.amount})</span>
-                      </div>
-                    )}
-                    <div className="flex justify-between items-center">
-                      <span style={{ color: cfg.text_color + 'aa', fontSize: `${baseFont * 0.85}px` }}>📝 Transactions</span>
-                      <span className="font-bold" style={{ fontSize: `${baseFont * 0.95}px` }}>{transactions.length}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Right Column: Chart + List */}
-              <div className="lg:col-span-2 space-y-5">
-                {/* Pie Chart */}
-                <div className="rounded-2xl border p-5 anim-slide" style={cardStyle}>
-                  <h2 className="font-bold mb-4" style={{ fontSize: `${baseFont * 1.15}px` }}>Expenses by Category</h2>
-                  {pieData.length > 0 ? (
-                    <div style={{ height: '280px' }}>
-                      <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                          <Pie data={pieData} cx="50%" cy="50%" innerRadius={60} outerRadius={100} paddingAngle={4} dataKey="value" animationBegin={0} animationDuration={800}>
-                            {pieData.map((entry, i) => <Cell key={i} fill={entry.color} stroke="transparent" />)}
-                          </Pie>
-                          <Tooltip
-                            contentStyle={{ backgroundColor: cfg.card_color, border: `1px solid ${cfg.secondary_color}`, borderRadius: '12px', color: cfg.text_color, fontFamily: fontStack }}
-                            formatter={(val) => [`${cur}${val.toFixed(2)}`, '']}
-                          />
-                        </PieChart>
-                      </ResponsiveContainer>
-                    </div>
-                  ) : (
-                    <div className="text-center py-12" style={{ color: cfg.text_color + '66' }}>
-                      <span style={{ fontSize: `${baseFont * 2.5}px` }}>📊</span>
-                      <p className="mt-2" style={{ fontSize: `${baseFont * 0.9}px` }}>Add expenses to see the chart</p>
-                    </div>
-                  )}
-                  {/* Legend */}
-                  {pieData.length > 0 && (
-                    <div className="flex flex-wrap gap-3 mt-4 justify-center">
-                      {pieData.map(d => (
-                        <div key={d.name} className="flex items-center gap-1.5" style={{ fontSize: `${baseFont * 0.78}px` }}>
-                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: d.color }} />
-                          <span style={{ color: cfg.text_color + 'cc' }}>{d.name}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* Transaction List */}
-                <div className="rounded-2xl border p-5 anim-slide" style={cardStyle}>
-                  <h2 className="font-bold mb-4" style={{ fontSize: `${baseFont * 1.15}px` }}>Transactions</h2>
-                  {transactions.length === 0 ? (
-                    <div className="text-center py-12" style={{ color: cfg.text_color + '66' }}>
-                      <span style={{ fontSize: `${baseFont * 2.5}px` }}>💰</span>
-                      <p className="mt-2" style={{ fontSize: `${baseFont * 0.9}px` }}>No transactions yet</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-2 max-h-96 overflow-y-auto pr-1">
-                      {transactions.map((txn, i) => {
-                        const cat = CATEGORIES[txn.category];
-                        const isIncome = txn.type === 'income';
-                        return (
-                          <div key={txn.id} className="flex items-center gap-3 rounded-xl p-3 transition-all hover:opacity-90 anim-slide"
-                            style={{ backgroundColor: cfg.secondary_color, animationDelay: `${i * 0.03}s` }}>
-                            <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                              style={{ backgroundColor: isIncome ? '#4ade8022' : (cat?.color || '#94a3b8') + '22', fontSize: `${baseFont * 1.2}px` }}>
-                              {isIncome ? '📈' : (cat?.emoji || '📦')}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="font-semibold truncate" style={{ fontSize: `${baseFont * 0.9}px` }}>{txn.title}</p>
-                              <p style={{ fontSize: `${baseFont * 0.7}px`, color: cfg.text_color + '77' }}>
-                                {isIncome ? 'Income' : cat?.label || txn.category} · {new Date(txn.date).toLocaleDateString()}
-                              </p>
-                            </div>
-                            <p className="font-bold flex-shrink-0" style={{ color: isIncome ? '#4ade80' : '#f87171', fontSize: `${baseFont * 0.95}px` }}>
-                              {isIncome ? '+' : '-'}{cur}{txn.amount.toFixed(2)}
-                            </p>
-                            {confirmDelete === txn.id ? (
-                              <div className="flex gap-1 flex-shrink-0">
-                                <button onClick={() => deleteTxn(txn.id)} className="rounded-lg px-2 py-1 text-white font-semibold"
-                                  style={{ backgroundColor: '#ef4444', fontSize: `${baseFont * 0.7}px` }}>Yes</button>
-                                <button onClick={() => setConfirmDelete(null)} className="rounded-lg px-2 py-1"
-                                  style={{ backgroundColor: cfg.card_color, fontSize: `${baseFont * 0.7}px`, color: cfg.text_color + 'aa' }}>No</button>
-                              </div>
-                            ) : (
-                              <button onClick={() => setConfirmDelete(txn.id)} className="rounded-lg p-2 transition-all hover:opacity-70 flex-shrink-0"
-                                style={{ color: cfg.text_color + '55' }} aria-label="Delete transaction">
-                                🗑️
-                              </button>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
+    sorted.forEach((t, i) => {
+      const id = String(t.id);
+      let el = existingMap.get(id);
+      if (!el) {
+        el = document.createElement('div');
+        el.dataset.id = id;
+        el.className = 'flex items-center justify-between rounded-lg px-3 py-2.5 group transition-all';
+        el.style.cssText = 'background:#262937;';
+        list.appendChild(el);
+      }
+      const isInc = t.type === 'income';
+      const color = isInc ? '#34d399' : '#f87171';
+      const catColor = CAT_COLORS[t.category] || '#6b7280';
+      el.innerHTML = `
+        <div class="flex items-center gap-3 min-w-0">
+          <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style="background:${catColor}22;">
+            <span class="text-xs font-bold" style="color:${catColor};">${t.category.charAt(0)}</span>
+          </div>
+          <div class="min-w-0">
+            <p class="text-sm font-medium truncate" style="color:#e2e8f0;">${t.title}</p>
+            <p class="text-xs" style="color:#6b7280;">${t.category}</p>
           </div>
         </div>
-      );
-    }
+        <div class="flex items-center gap-2">
+          <span class="mono text-sm font-semibold" style="color:${color};">${isInc?'+':'−'}₹${t.amount.toLocaleString('en-IN')}</span>
+          <button onclick="deleteTxn(${t.id})" class="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-red-500/20" title="Delete">
+            <i data-lucide="x" style="width:14px;height:14px;color:#f87171;"></i>
+          </button>
+        </div>`;
+    });
+  }
 
-    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  // Pie Chart
+  const expenseItems = transactions.filter(t => t.type === 'expense');
+  const pieChart = document.getElementById('pie-chart');
+  const pieLegend = document.getElementById('pie-legend');
+  const pieEmpty = document.getElementById('pie-empty');
+
+  if (expenseItems.length === 0) {
+    pieChart.classList.add('hidden'); 
+    pieLegend.classList.add('hidden'); 
+    pieEmpty.classList.remove('hidden');
+  } else {
+    pieChart.classList.remove('hidden'); 
+    pieLegend.classList.remove('hidden'); 
+    pieEmpty.classList.add('hidden');
+    const catTotals = {};
+    expenseItems.forEach(t => { 
+      catTotals[t.category] = (catTotals[t.category]||0) + t.amount; 
+    });
+    const cats = Object.entries(catTotals).sort((a,b) => b[1]-a[1]);
+    const total = cats.reduce((s,c)=>s+c[1],0);
+
+    let paths = '';
+    let cumAngle = -90;
+    cats.forEach(([cat, amt]) => {
+      const angle = (amt/total)*360;
+      const startRad = cumAngle * Math.PI/180;
+      const endRad = (cumAngle+angle) * Math.PI/180;
+      const x1 = 100+80*Math.cos(startRad), y1 = 100+80*Math.sin(startRad);
+      const x2 = 100+80*Math.cos(endRad), y2 = 100+80*Math.sin(endRad);
+      const large = angle > 180 ? 1 : 0;
+      const color = CAT_COLORS[cat]||'#6b7280';
+      if (cats.length === 1) {
+        paths += `<circle cx="100" cy="100" r="80" fill="${color}"/>`;
+      } else {
+        paths += `<path d="M100,100 L${x1},${y1} A80,80 0 ${large},1 ${x2},${y2} Z" fill="${color}" opacity="0.85"/>`;
+      }
+      cumAngle += angle;
+    });
+    paths += `<circle cx="100" cy="100" r="40" fill="#1a1d27"/>`;
+    pieChart.innerHTML = paths;
+
+    pieLegend.innerHTML = cats.map(([cat, amt]) => {
+      const pct = Math.round(amt/total*100);
+      return `<div class="flex items-center gap-2">
+        <div class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:${CAT_COLORS[cat]||'#6b7280'};"></div>
+        <span class="text-xs" style="color:#9ca3af;">${cat}</span>
+        <span class="mono text-xs font-medium" style="color:#e2e8f0;">₹${amt.toLocaleString('en-IN')}</span>
+        <span class="text-xs" style="color:#6b7280;">${pct}%</span>
+      </div>`;
+    }).join('');
+  }
+
+  // Top Expense
+  const topEl = document.getElementById('top-expense');
+  if (expenseItems.length > 0) {
+    const top = expenseItems.reduce((a,b) => a.amount > b.amount ? a : b);
+    topEl.textContent = `${top.title} — ₹${top.amount.toLocaleString('en-IN')}`;
+  } else { 
+    topEl.textContent = '—'; 
+  }
+
+  // Spending Personality
+  const ratio = income > 0 ? expenses / income : 0;
+  const pEl = document.getElementById('personality');
+  const pdEl = document.getElementById('personality-desc');
+  let pName, pDesc;
+  if (income === 0 && expenses === 0) { 
+    pName = '—'; 
+    pDesc = ''; 
+  } else if (ratio < 0.3) { 
+    pName = '🏦 Super Saver'; 
+    pDesc = 'You save over 70% of your income!'; 
+  } else if (ratio < 0.5) { 
+    pName = '💰 Smart Saver'; 
+    pDesc = 'Great balance between saving and spending.'; 
+  } else if (ratio < 0.75) { 
+    pName = '⚖️ Balanced Spender'; 
+    pDesc = 'You manage money responsibly.'; 
+  } else if (ratio < 1) { 
+    pName = '🛍️ Big Spender'; 
+    pDesc = 'Consider cutting back a little.'; 
+  } else { 
+    pName = '🔥 Over Budget'; 
+    pDesc = 'Expenses exceed income — time to review!'; 
+  }
+  pEl.textContent = pName;
+  pdEl.textContent = pDesc;
+
+  // Goal
+  const pct = Math.min(100, Math.round(goalSaved / goalTarget * 100));
+  document.getElementById('goal-saved').textContent = `₹${goalSaved.toLocaleString('en-IN')}`;
+  document.getElementById('goal-target').textContent = `₹${goalTarget.toLocaleString('en-IN')}`;
+  document.getElementById('goal-bar').style.width = pct + '%';
+
+  lucide.createIcons();
+  saveData();
+}
+
+// ── Actions ──
+function setType(type) {
+  txnType = type;
+  const bi = document.getElementById('btn-income');
+  const be = document.getElementById('btn-expense');
+  if (type === 'income') {
+    bi.style.cssText = 'background:#166534; color:#34d399; border:1px solid #22c55e44;';
+    be.style.cssText = 'background:#262937; color:#9ca3af; border:1px solid #333650;';
+  } else {
+    be.style.cssText = 'background:#7f1d1d; color:#f87171; border:1px solid #ef444444;';
+    bi.style.cssText = 'background:#262937; color:#9ca3af; border:1px solid #333650;';
+  }
+}
+
+function deleteTxn(id) {
+  const el = document.querySelector(`[data-id="${id}"]`);
+  if (el) {
+    el.style.transition = 'all 0.2s'; 
+    el.style.opacity = '0'; 
+    el.style.transform = 'translateX(20px)';
+    setTimeout(() => { 
+      transactions = transactions.filter(t => t.id !== id); 
+      render(); 
+    }, 200);
+  }
+}
+
+function addToGoal() {
+  const input = document.getElementById('goal-input');
+  const val = parseFloat(input.value);
+  if (!val || val <= 0) return;
+  goalSaved = Math.min(goalSaved + val, goalTarget);
+  input.value = '';
+  if (goalSaved >= goalTarget) showToast('🎉 Goal reached!', '#34d399');
+  render();
+}
+
+function showToast(msg, color) {
+  const t = document.createElement('div');
+  t.className = 'toast-in rounded-lg px-4 py-2 text-sm font-medium shadow-lg';
+  t.style.cssText = `background:#1a1d27; color:${color}; border:1px solid ${color}33;`;
+  t.textContent = msg;
+  document.getElementById('toast-container').appendChild(t);
+  setTimeout(() => { 
+    t.className = 'toast-out rounded-lg px-4 py-2 text-sm font-medium shadow-lg'; 
+    setTimeout(() => t.remove(), 300); 
+  }, 2000);
+}
+
+// ── Form ──
+document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('txn-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const title = document.getElementById('txn-title').value.trim();
+    const amount = parseFloat(document.getElementById('txn-amount').value);
+    const category = document.getElementById('txn-category').value;
+    if (!title || !amount || amount <= 0) return;
+    transactions.push({ id: Date.now(), title, amount, category, type: txnType });
+    this.reset();
+    setType('income');
+    showToast(txnType === 'income' ? '✅ Income added' : '📝 Expense added', txnType === 'income' ? '#34d399' : '#f87171');
+    render();
+  });
+
+  // ── Init ──
+  loadData();
+  render();
+  lucide.createIcons();
+});
   </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9e1ecd4bc0b346fe',t:'MTc3NDQ1MTAwMi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9e1f01ddc32e1432',t:'MTc3NDQ1MzE1NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
